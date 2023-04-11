@@ -1,11 +1,14 @@
 # mpv-remote
 mpv-remote is a work-in-progress script that allows users to bind keys of an IR remote control to mpv actions. Currently, this also allows for exploring files with netrw.
 
+
 ## Installation
 Right now in the experimental stages of the project there will be quite a few hoops to jump through if you want to follow along.
 
+
 ### Operating System
 Currently, mpv-remote only supports linux.
+
 
 ### Hardware
 
@@ -18,6 +21,7 @@ Currently, mpv-remote only supports linux.
     * [Dupont wires](https://www.amazon.com/Elegoo-EL-CP-004-Multicolored-Breadboard-arduino/dp/B01EV70C78/ref=sr_1_5?crid=18ZDTBTRG1O3F&keywords=female%2Bto%2Bmale%2Bdupont%2Bwires&qid=1681251439&sprefix=female%2Bto%2Bmale%2Bdupont%2Bwires%2Caps%2C100&sr=8-5&th=1)
     * TV remote control: It is better to get a good one of these maybe lying around your house somewhere.
 
+
 ### Software
 
 * Arduino-ide
@@ -27,17 +31,23 @@ Currently, mpv-remote only supports linux.
 * Python 3 
     
     * I currently have python 3.10.10 installed.
+
+
 ### Configuration
 To enable the IPC server add
-
 ```conf
 input-ipc-server=/tmp/mpv-socket  
 ```
-
 to your ~/.config/mpv/mpv.conf
+
+By defualt, the program prints out the binary strings given to /tmp/mpv-socket by the arduino. These binary strings are the codes associated with the remote's buttons and can be put in the if else blocks.
+
+To add new functions, visit https://github.com/mpv-player/mpv/blob/master/etc/input.conf to find the IPC commands associated with the mpv function you want.
+
 
 ### Arduino setup
 Install receiver.ino on the arduino and connect the IR receiver to Ground, 5v and pin 2. Plug the arduino into the computer that you want to control.
+
 
 ### Final steps
 Make sure the mpv-remote script has the proper privileges with 
