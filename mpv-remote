@@ -1,0 +1,139 @@
+#!/usr/bin/python3
+import serial.tools.list_ports
+import socket
+import sys
+import keyboard
+from subprocess import call
+from time import sleep
+
+isWindows = sys.platform.startswith('win')
+
+ports = serial.tools.list_ports.comports()
+serialInst = serial.Serial()
+
+portVar = "/dev/ttyACM0"
+
+serialInst.baudrate = 9600
+serialInst.port = portVar
+serialInst.open()
+
+
+def main():
+    while True:
+        netrwMode()
+
+
+def netrwMode():
+    while True:
+        if serialInst.in_waiting:
+            packet = serialInst.readline()
+            # print(packet)
+
+            if packet == b'E7180586\r\n':    # enter
+                keyboard.press("`")
+                sleep(.1)
+                keyboard.release("`")
+                break
+            elif packet == b'BE410586\r\n':  # .
+                doMpvCmd(b'quit\n')
+                break
+            elif packet == b'EA150586\r\n':  # >
+                keyboard.press("enter")
+                sleep(.1)
+                keyboard.release("enter")
+            elif packet == b'E9160586\r\n':  # <
+                keyboard.press("-")
+                sleep(.1)
+                keyboard.release("-")
+            elif packet == b'BD420586\r\n':  # ^
+                keyboard.press("k")
+                sleep(.1)
+                keyboard.release("k")
+            elif packet == b'BC430586\r\n':  # v
+                keyboard.press("j")
+                sleep(.1)
+                keyboard.release("j")
+            elif packet == b'F30C0586\r\n':  # vol ^
+                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "+20%"])
+            elif packet == b'F20D0586\r\n':  # vol v
+                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "-20%"])
+        sleep(.1)
+    mpvMode()
+
+
+def mpvMode():
+    while True:
+        if serialInst.in_waiting:
+            packet = serialInst.readline()
+            print(packet)
+
+            if packet == b'E7180586\r\n':    # enter
+                doMpvCmd(b'cycle pause\n')
+
+            elif packet == b'BE410586\r\n':  # .
+                doMpvCmd(b'quit\n')
+                break
+            elif packet == b'EA150586\r\n':  # >
+                doMpvCmd(b'seek 5\n')
+
+            elif packet == b'E9160586\r\n':  # <
+                doMpvCmd(b'seek -5\n')
+
+            elif packet == b'BD420586\r\n':  # ^
+                doMpvCmd(b'seek 60\n')
+
+            elif packet == b'BC430586\r\n':  # v
+                doMpvCmd(b'seek -60\n')
+
+            elif packet == b'F30C0586\r\n':  # vol ^
+                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "+20%"])
+
+            elif packet == b'F20D0586\r\n':  # vol v
+                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "-20%"])
+
+            elif packet == b'807F0586\r\n':  # >>|
+                doMpvCmd(b'playlist-next\n')
+
+            elif packet == b'7F800586\r\n':  # |<<
+                doMpvCmd(b'playlist-prev\n')
+
+            elif packet == b'E31C0586\r\n':  # CCD
+                doMpvCmd(b'cycle sub\n')
+
+            elif packet == b'E8170586\r\n':  # INFO*
+                doMpvCmd(b'show-progress\n')
+
+            elif packet == b'F6090586\r\n':  # 0
+                doMpvCmd(b'cycle fullscreen\n')
+        sleep(.1)
+    netrwMode()
+
+
+def doMpvCmd(thecmd):
+    try:
+        if isWindows:
+            f = open(r'\\.\pipe\mpv-pipe', 'wb')
+            f.write(thecmd)
+            f.close()
+        else:
+            client = socket.socket(socket.AF_UNIX)
+            client.connect('/tmp/mpv-socket')
+            client.send(thecmd)
+            client.close()
+    except IOError:
+        # keeping silent in case mpv is not open
+        pass
+
+
+main()
+
+# portList = []
+# for onePort in ports:
+#     portList.append(str(onePort))
+#
+# val = input("select Port: COM")
+#
+# for i in range(0, len(portList)):
+#     if portList[i].startswith("COM" + str(val)):
+#         portVar = "COM" + str(val)
+#         print(portVar[i])
