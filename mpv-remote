@@ -3,7 +3,6 @@ import serial.tools.list_ports
 import socket
 import sys
 import keyboard
-from subprocess import call
 from time import sleep
 
 isWindows = sys.platform.startswith('win')
@@ -22,118 +21,90 @@ def main():
     while True:
         mpvMode()
         # netrwMode()
-# TODO: make "keyboard use" function
-# TODO: make command dictionary
 # TODO: make better file explorer vs mpv detection
+# TODO: make windows compatible
 
 
 def mpvMode():
+    MPVCommands = {
+        b'E7180586': b'cycle pause',       # enter
+        b'BE410586': b'quit',              # .
+        b'EA150586': b'seek  5',           # >
+        b'E9160586': b'seek -5',           # <
+        b'BD420586': b'seek  60',          # ^
+        b'BC430586': b'seek -60',          # v
+        b'807F0586': b'playlist-next',     # >>|
+        b'7F800586': b'playlist-prev',     # |<<
+        b'E31C0586': b'cycle sub',         # CCD
+        b'E8170586': b'show-progress',     # INFO*
+        b'F6090586': b'cycle fullscreen',  # 0
+        b'F30C0586': b'add volume  5',     # vol ^
+        b'F20D0586': b'add volume -5'      # vol v
+    }
+
     while True:
         if serialInst.in_waiting:
-            packet = serialInst.readline()
-            print(packet)
+            packet = serialInst.readline().rstrip()
+            # rstrip() removes the \r\n off the end of the arduino input
 
-            if packet == b'E7180586\r\n':    # enter
-                doMpvCmd(b'cycle pause\n')
-
-            elif packet == b'BE410586\r\n':  # .
-                doMpvCmd(b'quit\n')
-                break
-            elif packet == b'EA150586\r\n':  # >
-                doMpvCmd(b'seek 5\n')
-
-            elif packet == b'E9160586\r\n':  # <
-                doMpvCmd(b'seek -5\n')
-
-            elif packet == b'BD420586\r\n':  # ^
-                doMpvCmd(b'seek 60\n')
-
-            elif packet == b'BC430586\r\n':  # v
-                doMpvCmd(b'seek -60\n')
-
-            elif packet == b'F30C0586\r\n':  # vol ^
-                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "+20%"])
-                # NOTE: not working
-
-            elif packet == b'F20D0586\r\n':  # vol v
-                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "-20%"])
-                # NOTE: not working
-
-            elif packet == b'807F0586\r\n':  # >>|
-                doMpvCmd(b'playlist-next\n')
-
-            elif packet == b'7F800586\r\n':  # |<<
-                doMpvCmd(b'playlist-prev\n')
-
-            elif packet == b'E31C0586\r\n':  # CCD
-                doMpvCmd(b'cycle sub\n')
-
-            elif packet == b'E8170586\r\n':  # INFO*
-                doMpvCmd(b'show-progress\n')
-
-            elif packet == b'F6090586\r\n':  # 0
-                doMpvCmd(b'cycle fullscreen\n')
+            print(packet)  # returns hex value that the script is comparing
+            if packet in MPVCommands.keys():
+                command = MPVCommands.get(packet)
+                print(command.decode("ascii"))
+                doMpvCmd(command)
+                if command == b'quit':
+                    break
+            else:
+                print("unbound button")
         sleep(.1)
-    # netrwMode() # uncomment if you want to control from netrw
+    netrwMode()  # uncomment if you want to control from netrw
     # TODO: use mpv plugin to browse video files
 
 
 def netrwMode():
+    keyboardKeys = {
+        b'E7180586': "`",      # enter
+        b'EA150586': "enter",  # >
+        b'E9160586': "-",      # <
+        b'BD420586': "k",      # ^
+        b'BC430586': "j"       # v
+    }
+
     while True:
         if serialInst.in_waiting:
-            packet = serialInst.readline()
-            # print(packet)
+            packet = serialInst.readline().rstrip()
+            print(packet)
+            if packet in keyboardKeys:
+                key = keyboardKeys.get(packet)
+                print(key)
+                click(key)
 
-            if packet == b'E7180586\r\n':    # enter
-                keyboard.press("`")
-                sleep(.1)
-                keyboard.release("`")
-                break
+                if key == "`":
+                    break
 
-            elif packet == b'BE410586\r\n':  # .
-                doMpvCmd(b'quit\n')
-                break
-
-            elif packet == b'EA150586\r\n':  # >
-                keyboard.press("enter")
-                sleep(.1)
-                keyboard.release("enter")
-
-            elif packet == b'E9160586\r\n':  # <
-                keyboard.press("-")
-                sleep(.1)
-                keyboard.release("-")
-
-            elif packet == b'BD420586\r\n':  # ^
-                keyboard.press("k")
-                sleep(.1)
-                keyboard.release("k")
-
-            elif packet == b'BC430586\r\n':  # v
-                keyboard.press("j")
-                sleep(.1)
-                keyboard.release("j")
-
-            elif packet == b'F30C0586\r\n':  # vol ^
-                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "+20%"])
-
-            elif packet == b'F20D0586\r\n':  # vol v
-                call(["pactl", "set-sink-volume", "@DEFAULT_SINK@",  "-20%"])
         sleep(.1)
     mpvMode()
 
 
-# TODO: make windows compatible
+def click(key):
+    keyboard.press(key)
+    sleep(.1)
+    keyboard.release(key)
+
+
 def doMpvCmd(thecmd):
+    # adds the new line character that effectively enters the command
     try:
         if isWindows:
             f = open(r'\\.\pipe\mpv-pipe', 'wb')
             f.write(thecmd)
+            f.write(b'\n')
             f.close()
         else:
             client = socket.socket(socket.AF_UNIX)
             client.connect('/tmp/mpv-socket')
             client.send(thecmd)
+            client.send(b'\n')
             client.close()
     except IOError:
         # keeping silent in case mpv is not open
