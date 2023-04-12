@@ -22,8 +22,6 @@ def main():
     while True:
         mpvMode()
         # netrwMode()
-# TODO: make "keyboard use" function
-# TODO: make command dictionary
 # TODO: make better file explorer vs mpv detection
 
 
