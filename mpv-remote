@@ -5,8 +5,6 @@ import sys
 import keyboard
 from time import sleep
 
-isWindows = sys.platform.startswith('win')
-
 ports = serial.tools.list_ports.comports()
 serialInst = serial.Serial()
 
@@ -16,18 +14,24 @@ serialInst.baudrate = 9600
 serialInst.port = portVar
 serialInst.open()
 
+isWindows = sys.platform.startswith('win')
+
+# TODO: Make better file explorer vs mpv detection
+# TODO: Make Windows compatible
+# TODO: Find a way to detect which serial port the arduino is on
+# TODO: Make this whole script an mpv lua plugin
+# TODO: Use mpv plugin to browse video files
+
 
 def main():
     while True:
         mpvMode()
         # netrwMode()
-# TODO: make better file explorer vs mpv detection
-# TODO: make windows compatible
 
 
 def mpvMode():
-    MPVCommands = {
-        b'E7180586': b'cycle pause',       # enter
+    mpvCommands = {
+        b'E7180586': b'cycle pause',       # ENTER
         b'BE410586': b'quit',              # .
         b'EA150586': b'seek  5',           # >
         b'E9160586': b'seek -5',           # <
@@ -38,32 +42,32 @@ def mpvMode():
         b'E31C0586': b'cycle sub',         # CCD
         b'E8170586': b'show-progress',     # INFO*
         b'F6090586': b'cycle fullscreen',  # 0
-        b'F30C0586': b'add volume  5',     # vol ^
-        b'F20D0586': b'add volume -5'      # vol v
+        b'F30C0586': b'add volume  5',     # VOL ^
+        b'F20D0586': b'add volume -5'      # VOL v
     }
 
     while True:
         if serialInst.in_waiting:
             packet = serialInst.readline().rstrip()
-            # rstrip() removes the \r\n off the end of the arduino input
+            # rstrip() removes the \r\n off the end of the arduino ouput
+            print(packet)
 
-            print(packet)  # returns hex value that the script is comparing
-            if packet in MPVCommands.keys():
-                command = MPVCommands.get(packet)
+            if packet in mpvCommands.keys():
+                command = mpvCommands.get(packet)
                 print(command.decode("ascii"))
                 doMpvCmd(command)
+
                 if command == b'quit':
                     break
             else:
                 print("unbound button")
         sleep(.1)
-    netrwMode()  # uncomment if you want to control from netrw
-    # TODO: use mpv plugin to browse video files
+    # netrwMode()  # comment if you don't want to browse from netrw
 
 
 def netrwMode():
-    keyboardKeys = {
-        b'E7180586': "`",      # enter
+    keyBindings = {
+        b'E7180586': "`",      # ENTER
         b'EA150586': "enter",  # >
         b'E9160586': "-",      # <
         b'BD420586': "k",      # ^
@@ -74,14 +78,16 @@ def netrwMode():
         if serialInst.in_waiting:
             packet = serialInst.readline().rstrip()
             print(packet)
-            if packet in keyboardKeys:
-                key = keyboardKeys.get(packet)
+
+            if packet in keyBindings:
+                key = keyBindings.get(packet)
                 print(key)
                 click(key)
 
                 if key == "`":
                     break
-
+            else:
+                print("unbound button")
         sleep(.1)
     mpvMode()
 
@@ -93,7 +99,6 @@ def click(key):
 
 
 def doMpvCmd(thecmd):
-    # adds the new line character that effectively enters the command
     try:
         if isWindows:
             f = open(r'\\.\pipe\mpv-pipe', 'wb')
@@ -105,13 +110,15 @@ def doMpvCmd(thecmd):
             client.connect('/tmp/mpv-socket')
             client.send(thecmd)
             client.send(b'\n')
+            # ^ adds the newline character that effectively enters the command
             client.close()
     except IOError:
         # keeping silent in case mpv is not open
         pass
 
 
-main()
+if __name__ == "__main__":
+    main()
 
 # portList = []
 # for onePort in ports:
