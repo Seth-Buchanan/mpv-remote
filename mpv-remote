@@ -8,11 +8,6 @@ from time import sleep
 ports = serial.tools.list_ports.comports()
 serialInst = serial.Serial()
 
-portVar = "/dev/ttyACM0"
-
-serialInst.baudrate = 9600
-serialInst.port = portVar
-serialInst.open()
 
 isWindows = sys.platform.startswith('win')
 
@@ -24,9 +19,17 @@ isWindows = sys.platform.startswith('win')
 
 
 def main():
+    connectToArduino()
     while True:
         mpvMode()
         # netrwMode()
+
+
+def connectToArduino():
+    # portVar = "/dev/ttyACM0"
+    serialInst.baudrate = 9600
+    serialInst.port = serial.tools.list_ports.grep("arduino")
+    serialInst.open()
 
 
 def mpvMode():
