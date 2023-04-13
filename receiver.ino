@@ -9,7 +9,6 @@ void setup() {
 void loop() {
   if(IR.decode()){
     Serial.println(IR.decodedIRData.decodedRawData, HEX);
-    delay(1500);
     IR.resume();
   }
 }
