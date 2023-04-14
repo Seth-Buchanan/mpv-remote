@@ -27,9 +27,15 @@ def main():
 
 def connectToArduino():
     # portVar = "/dev/ttyACM0"
-    serialInst.baudrate = 9600
-    serialInst.port = serial.tools.list_ports.grep("arduino")
-    serialInst.open()
+    # serialInst.baudrate = 9600
+    # serialInst.port = serial.tools.list_ports.grep("arduino")
+    # serialInst.open()
+    portList = serial.tools.list_ports.comports()
+    for results in portList:
+        print("test")
+        print(dir(results))
+        print(results.product)
+    quit()
 
 
 def mpvMode():
@@ -65,7 +71,7 @@ def mpvMode():
             else:
                 print("unbound button")
         sleep(.1)
-    # netrwMode()  # comment if you don't want to browse from netrw
+    netrwMode()  # comment if you don't want to browse from netrw
 
 
 def netrwMode():
