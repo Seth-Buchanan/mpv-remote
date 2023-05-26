@@ -1,0 +1,18 @@
+{
+    "AB54C738": "cycle pause",
+    "ED12C738": "quit",
+    "E11EC738": "seek 5",
+    "E01FC738": "seek -5",
+    "B14EC738": "seek 60",
+    "B04FC738": "seek -60",
+    "FE01C738": "playlist-prev",
+    "FD02C738": "playlist-next",
+    "EE11C738": "cycle sub",
+    "AD52C738": "show-progress",
+    "FF00C738": "cycle fullscreen",
+    "F10EC738": "add volume 5",
+    "F00FC738": "add volume -5",
+    "F50AC738": "add chapter 1",
+    "F40BC738": "add chapter -1",
+    "E718C738": "cycle mute"
+}
