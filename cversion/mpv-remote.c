@@ -1,3 +1,5 @@
+/* gcc -o mpv-remote.so mpv-remote.c `pkg-config --cflags --libs json-c mpv` -shared -fPIC  */
+
 #define SERIALTERMINAL      "/dev/ttyACM0"
 #include <errno.h>
 #include <fcntl.h> 
@@ -57,10 +59,9 @@ void do_mpv_command(char buf[], mpv_handle *handle) {
   struct json_object *name;
   json_object_object_get_ex(parsed_json, buf, &name);
   if(name != 0){
-    printf("%s", json_object_get_string(name));
+    /* printf("%s", json_object_get_string(name)); */
     mpv_command_string(handle ,json_object_get_string(name));
   }
-  /* mpv_command_string(handle, "cycle pause"); */
 }
 
 
@@ -77,8 +78,7 @@ void parse_json() {
 
 
 int mpv_open_cplugin(mpv_handle *handle) {
-  printf("test");
-  /* parse_json(); */
+  parse_json();
   char *portname = SERIALTERMINAL;
   int fd;
   
@@ -98,10 +98,6 @@ int mpv_open_cplugin(mpv_handle *handle) {
     int rdlen;
     mpv_event *event = mpv_wait_event(handle, -1);
     
-    if (event->event_id == MPV_EVENT_SHUTDOWN){
-      break;
-    }
-    
     rdlen = read(fd, buf, sizeof(buf) - 1);
     if (rdlen > 0) {
       buf[rdlen] = 0;
@@ -109,12 +105,16 @@ int mpv_open_cplugin(mpv_handle *handle) {
 	if (*p < ' ') *p = '\0';   /* replace any control chars */
       }
       do_mpv_command(buf, handle);
-      /* printf("%s\n", buf); */
+
     } else if (rdlen < 0) {
       printf("Error from read: %d: %s\n", rdlen, strerror(errno));
     } else {  /* rdlen == 0 */
       printf("Nothing read. EOF?\n");
     }
+    
+    if (event->event_id == MPV_EVENT_SHUTDOWN)
+      break;
+
   }
   return 0;
 }
