@@ -1,12 +1,3 @@
-.DEFUALT_GOAL := run
+all: mpv-remote.c
+	gcc -o mpv-remote.so mpv-remote.c `pkg-config --cflags --libs json-c mpv` -shared -fPIC
 
-clean:
-	rm -rf __pycache__
-
-run:
-	python3 mpv-remote
-
-setup: requirements.txt
-	pip install -r requirements.txt
-
-.PHONY: run clean

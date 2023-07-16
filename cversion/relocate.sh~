@@ -1,4 +1,0 @@
-rm ~/.config/mpv/scripts/mpv-remote.so
-ls ~/.config/mpv/scripts/mpv-remote.so
-mv mpv-remote.so ~/.config/mpv/scripts/
-ls ~/.config/mpv/scripts/mpv-remote.so
