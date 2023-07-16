@@ -30,8 +30,6 @@ Currently, mpv c plugins only support linux.
 
 ### Building the Plugin
 
-* To Build the plugin, [the json-c](https://github.com/json-c/json-c) library will need to be installed.
-
 * Use gcc with the options specified in the MAKEFILE.
 
 * Move the plugin to ~/.config/mpv/scripts.
