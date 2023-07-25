@@ -30,7 +30,7 @@ Currently, mpv c plugins only support linux.
 
 ### Building the Plugin
 
-* Use gcc with the options specified in the MAKEFILE.
+* Use gcc with the options specified in the Makefile.
 
 * Move the plugin to ~/.config/mpv/scripts.
 
