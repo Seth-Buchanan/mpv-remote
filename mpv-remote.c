@@ -106,8 +106,7 @@ int mpv_open_cplugin(mpv_handle *handle) {
   tcflush(fd, TCIFLUSH);
   tcsetattr(fd,TCSANOW,&newtio);
          
-  /* loop while waiting for input. normally we would do something
-     useful here */ 
+  /* loop while waiting for input.  */ 
   while (keep_going) {
     mpv_event *event = mpv_wait_event(handle, 0);
     /* printf("event: %s\n", mpv_event_name(event->event_id)); */
